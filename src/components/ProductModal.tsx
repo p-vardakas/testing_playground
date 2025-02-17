@@ -1,7 +1,7 @@
 'use client'
 
-import { Product } from '../data/products'
-import { useCart } from '../context/CartContext'
+import { Product } from '@/data/products'
+import { useCart } from '@/context/CartContext'
 import Image from 'next/image'
 
 interface ProductModalProps {
@@ -16,15 +16,15 @@ export default function ProductModal({ product, isOpen, onClose }: ProductModalP
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50" data-testid="product-modal">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50" data-test-id="product-modal">
       <div className="bg-white rounded-lg max-w-2xl w-full">
         <div className="p-6">
           <div className="flex justify-between items-start">
-            <h2 className="text-2xl font-bold text-gray-900" data-testid="modal-product-name">{product.name}</h2>
+            <h2 className="text-2xl font-bold text-gray-900" data-test-id="modal-product-name">{product.name}</h2>
             <button
               onClick={onClose}
               className="text-gray-400 hover:text-gray-500"
-              data-testid="close-modal-button"
+              data-test-id="close-modal-button"
             >
               <span className="sr-only">Close</span>
               <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -32,17 +32,17 @@ export default function ProductModal({ product, isOpen, onClose }: ProductModalP
               </svg>
             </button>
           </div>
-          <div className="mt-4 relative h-64" data-testid="modal-product-image-container">
+          <div className="mt-4 relative h-64" data-test-id="modal-product-image-container">
             <Image
               src={product.image}
               alt={product.name}
               fill
               className="object-cover rounded-lg"
-              data-testid="modal-product-image"
+              data-test-id="modal-product-image"
             />
           </div>
-          <p className="mt-4 text-gray-600" data-testid="modal-product-description">{product.description}</p>
-          <p className="mt-4 text-xl font-bold text-gray-900" data-testid="modal-product-price">
+          <p className="mt-4 text-gray-600" data-test-id="modal-product-description">{product.description}</p>
+          <p className="mt-4 text-xl font-bold text-gray-900" data-test-id="modal-product-price">
             €{product.price.toFixed(2)}
           </p>
           <div className="mt-6">
@@ -52,7 +52,7 @@ export default function ProductModal({ product, isOpen, onClose }: ProductModalP
                 onClose()
               }}
               className="w-full bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700"
-              data-testid="modal-add-to-cart-button"
+              data-test-id="modal-add-to-cart-button"
             >
               Add to Cart
             </button>

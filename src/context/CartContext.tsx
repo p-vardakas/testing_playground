@@ -1,9 +1,9 @@
 'use client'
 
-import { Product } from '../data/products'
+import { Product } from '@/data/products'
 import { createContext, useContext, useState, ReactNode } from 'react'
 
-interface CartItem extends Product {
+export interface CartItem extends Product {
   quantity: number
 }
 
@@ -21,6 +21,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const [cart, setCart] = useState<CartItem[]>([])
 
   const addToCart = (product: Product) => {
+    console.log('Adding to cart:', product)
     setCart(currentCart => {
       const existingItem = currentCart.find(item => item.id === product.id)
       if (existingItem) {
@@ -45,9 +46,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const total = cart.reduce((sum, item) => sum + item.price * item.quantity, 0)
 
   return (
-    <CartContext.Provider
-      value={{ cart, addToCart, removeFromCart, clearCart, total }}
-    >
+    <CartContext.Provider value={{ cart, addToCart, removeFromCart, clearCart, total }}>
       {children}
     </CartContext.Provider>
   )

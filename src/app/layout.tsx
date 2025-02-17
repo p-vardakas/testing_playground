@@ -1,29 +1,25 @@
-import type { Metadata } from "next";
-import { Geist } from "next/font/google";
-import "./globals.css";
+import type { Metadata } from "next"
+import { GeistSans } from 'geist/font/sans'
+import "./globals.css"
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
 import { CartProvider } from '@/context/CartContext'
 
-const geist = Geist({
-  subsets: ["latin"],
-  variable: "--font-geist",
-  weight: ["400", "500", "600", "700"],
-});
+const geist = GeistSans
 
 export const metadata: Metadata = {
   title: "E-commerce Testing Playground",
   description: "A testing playground for e-commerce functionality",
-};
+}
 
 export default function RootLayout({
   children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+}: {
+  children: React.ReactNode
+}) {
   return (
-    <html lang="en">
-      <body className={`${geist.variable} font-sans antialiased bg-gray-900`}>
+    <html lang="en" className={geist.className}>
+      <body className="bg-gray-900">
         <CartProvider>
           <div className="min-h-screen flex flex-col">
             <Header />
@@ -35,5 +31,5 @@ export default function RootLayout({
         </CartProvider>
       </body>
     </html>
-  );
+  )
 }
