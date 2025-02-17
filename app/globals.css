@@ -3,8 +3,36 @@
 @tailwind utilities;
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --primary: #4f46e5; /* indigo-600 */
+  --primary-hover: #4338ca; /* indigo-700 */
+  --background: #111827; /* gray-900 */
+  --text-primary: #ffffff;
+  --text-secondary: #9ca3af; /* gray-400 */
+  --text-dark: #111827; /* gray-900 */
+}
+
+@layer base {
+  body {
+    @apply bg-gray-900 text-white font-sans;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-bold text-white;
+  }
+
+  /* Consistent button styles */
+  .btn-primary {
+    @apply bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700 transition-colors;
+  }
+
+  .btn-secondary {
+    @apply bg-gray-100 text-gray-800 px-4 py-2 rounded hover:bg-gray-200 transition-colors;
+  }
+
+  /* Consistent input styles */
+  .input-primary {
+    @apply mt-1 block w-full rounded-md border px-3 py-2 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-indigo-600 sm:text-sm;
+  }
 }
 
 @media (prefers-color-scheme: dark) {
@@ -12,10 +40,4 @@
     --background: #0a0a0a;
     --foreground: #ededed;
   }
-}
-
-body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
 }

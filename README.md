@@ -1,4 +1,36 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# E-commerce Testing Playground
+
+A testing playground for e-commerce functionality built with Next.js 14, TypeScript, Tailwind CSS, and modern web development practices. Designed specifically for testing demonstrations with data-test-ids.
+
+## Overview
+
+This project serves as a testing ground for e-commerce features including:
+- User authentication
+- Product browsing
+- Shopping cart management
+- Checkout process
+- Responsive design
+- Modern UI components
+
+### Testing Features
+- Comprehensive data-test-ids for all interactive elements
+- Structured component hierarchy for easy test targeting
+- Predictable state management for testing scenarios
+- Mock data ready for testing demonstrations
+- Consistent naming conventions for test selectors
+
+## Tech Stack
+
+- **Framework**: Next.js 14 (App Router)
+- **Language**: TypeScript
+- **Styling**: Tailwind CSS
+- **Font**: Geist
+- **State Management**: React Context
+- **UI Components**: Custom components with Tailwind
+- **Testing Support**: Data-test-ids throughout the application
+- **Deployment**: Vercel
+
+## Project Structure
 
 ## Getting Started
 
