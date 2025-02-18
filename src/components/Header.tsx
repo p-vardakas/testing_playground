@@ -10,9 +10,9 @@ import CartModal from './CartModal'
 export function Header() {
     const {cart, clearCart} = useCart()
     const router = useRouter()
+    const pathname = usePathname()
     const [isCartOpen, setIsCartOpen] = useState(false)
     const [isMenuOpen, setIsMenuOpen] = useState(false)
-    const pathname = usePathname()
     const [mounted, setMounted] = useState(false)
 
     const totalQuantity = cart.reduce((sum, item) => sum + item.quantity, 0)
@@ -20,6 +20,15 @@ export function Header() {
     useEffect(() => {
         setMounted(true)
     }, [])
+
+    const handleLogoClick = (e: React.MouseEvent) => {
+        e.preventDefault()
+        if (pathname === '/') {
+            // User is on login page, do nothing
+            return
+        }
+        router.push('/dashboard')
+    }
 
     const handleLogout = () => {
         clearCart()
@@ -30,7 +39,11 @@ export function Header() {
         <header className="bg-white shadow-md" data-test-id="header">
             <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4" data-test-id="header-nav">
                 <div className="flex justify-between items-center">
-                    <Link href="/dashboard" className="flex items-center" data-test-id="header-logo-link">
+                    <div 
+                        onClick={handleLogoClick}
+                        className="flex items-center cursor-pointer" 
+                        data-test-id="header-logo-link"
+                    >
                         <div className="relative w-[180px] h-[45px]" data-test-id="logo-container">
                             <Image
                                 src="/images/agile-actors-logo.webp"
@@ -49,7 +62,7 @@ export function Header() {
                             data-test-id="header-title">
               Testing playground
             </span>
-                    </Link>
+                    </div>
                     {mounted && pathname !== '/' && (
                         <div className="flex items-center">
                             {/* Mobile Menu Button */}

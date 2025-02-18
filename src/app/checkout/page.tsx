@@ -2,8 +2,11 @@
 
 import {useCart} from '@/context/CartContext'
 import {useRouter} from 'next/navigation'
-import {useState} from 'react'
+import {useState, useCallback, useEffect} from 'react'
 import {type CheckoutForm} from '@/types/checkout'
+
+const phoneRegex = /^\+?[\d\s-]{10,}$/
+const zipRegex = /^\d{5}$/
 
 export default function CheckoutPage() {
     const {cart, total, clearCart} = useCart()
@@ -11,35 +14,82 @@ export default function CheckoutPage() {
     const [showConfirmation, setShowConfirmation] = useState(false)
     const [showSuccess, setShowSuccess] = useState(false)
     const [orderId, setOrderId] = useState('')
+    const [showCancelConfirmation, setShowCancelConfirmation] = useState(false)
     const [formData, setFormData] = useState<CheckoutForm>({
         name: '',
         phone: '',
         address: '',
         city: '',
-        state: '',
         zip: ''
     })
+    const [errors, setErrors] = useState<Partial<Record<keyof CheckoutForm, string>>>({})
 
     const totalItems = cart.length
     const totalQuantity = cart.reduce((sum, item) => sum + item.quantity, 0)
 
-    function handleSubmit(e: React.FormEvent) {
+    const validateForm = useCallback((): boolean => {
+        const newErrors: Partial<Record<keyof CheckoutForm, string>> = {}
+
+        if (!formData.name.trim()) {
+            newErrors.name = 'Name is required'
+        }
+
+        if (!phoneRegex.test(formData.phone)) {
+            newErrors.phone = 'Please enter a valid phone number'
+        }
+
+        if (!formData.address.trim()) {
+            newErrors.address = 'Address is required'
+        }
+
+        if (!formData.city.trim()) {
+            newErrors.city = 'City is required'
+        }
+
+        if (!zipRegex.test(formData.zip)) {
+            newErrors.zip = 'Please enter a valid 5-digit ZIP code'
+        }
+
+        setErrors(newErrors)
+        return Object.keys(newErrors).length === 0
+    }, [formData])
+
+    function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault()
-        setShowConfirmation(true)
+        if (validateForm()) {
+            setShowConfirmation(true)
+        }
     }
 
-    function handleConfirmOrder() {
-        // Generate random 6-digit order ID
+    function handleConfirmOrder(): void {
         const randomOrderId = Math.floor(100000 + Math.random() * 900000).toString()
         setOrderId(randomOrderId)
         setShowConfirmation(false)
         setShowSuccess(true)
     }
 
-    function handleReturnToProducts() {
+    function handleReturnToProducts(): void {
         clearCart()
         router.push('/dashboard')
     }
+
+    function handleCancelOrder(): void {
+        clearCart()
+        router.push('/dashboard')
+    }
+
+    useEffect(() => {
+        if (showConfirmation || showCancelConfirmation) {
+            // Prevent background scrolling when modal is open
+            document.body.style.overflow = 'hidden'
+            // Focus first interactive element in modal
+            const modal = document.querySelector('[role="dialog"]')
+            const firstButton = modal?.querySelector('button')
+            firstButton?.focus()
+        } else {
+            document.body.style.overflow = 'unset'
+        }
+    }, [showConfirmation, showCancelConfirmation])
 
     if (!cart.length) return (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8" data-test-id="empty-cart-container">
@@ -55,7 +105,11 @@ export default function CheckoutPage() {
     )
 
     if (showSuccess) return (
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8" data-test-id="success-container">
+        <div 
+            className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8" 
+            data-test-id="success-container"
+            role="alert"
+        >
             <div className="bg-white/5 backdrop-blur-sm rounded-lg p-8 max-w-2xl mx-auto text-center">
                 {/* Checkmark Icon */}
                 <div className="mb-6 flex justify-center">
@@ -90,7 +144,8 @@ export default function CheckoutPage() {
                 <button
                     onClick={handleReturnToProducts}
                     className="btn-primary"
-                    data-test-id="return-to-products-button"
+                    data-test-id="success-return-button"
+                    aria-label="Return to products page"
                 >
                     Return to Products
                 </button>
@@ -115,89 +170,147 @@ export default function CheckoutPage() {
                 <div>
                     <h2 className="text-2xl font-semibold text-white mb-6" data-test-id="shipping-title">Shipping
                         Information</h2>
-                    <form onSubmit={handleSubmit} className="space-y-4" data-test-id="checkout-form">
+                    <form onSubmit={handleSubmit} className="space-y-4" data-test-id="checkout-form" noValidate>
                         <div>
-                            <label className="block text-sm font-medium text-white"
-                                   data-test-id="name-label">Name</label>
+                            <label htmlFor="name" className="block text-sm font-medium text-white" data-test-id="name-label">
+                                Name
+                            </label>
                             <input
+                                id="name"
                                 type="text"
                                 required
-                                className="input-primary"
+                                aria-required="true"
+                                aria-invalid={!!errors.name}
+                                aria-describedby={errors.name ? "name-error" : undefined}
+                                className={`input-primary ${errors.name ? 'border-red-500' : ''}`}
                                 value={formData.name}
-                                onChange={(e) => setFormData({...formData, name: e.target.value})}
+                                onChange={(e) => {
+                                    setFormData({...formData, name: e.target.value})
+                                    if (errors.name) {
+                                        setErrors({...errors, name: ''})
+                                    }
+                                }}
                                 data-test-id="name-input"
                             />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-white"
-                                   data-test-id="phone-label">Phone</label>
-                            <input
-                                type="tel"
-                                required
-                                className="input-primary"
-                                value={formData.phone}
-                                onChange={(e) => setFormData({...formData, phone: e.target.value})}
-                                data-test-id="phone-input"
-                            />
+                            {errors.name && (
+                                <p id="name-error" className="mt-1 text-sm text-red-500" role="alert" data-test-id="name-error">
+                                    {errors.name}
+                                </p>
+                            )}
                         </div>
                         <div className="grid grid-cols-3 gap-4">
                             <div className="col-span-2">
-                                <label className="block text-sm font-medium text-white"
-                                       data-test-id="address-label">Address</label>
+                                <label htmlFor="address" className="block text-sm font-medium text-white" data-test-id="address-label">Address</label>
                                 <input
+                                    id="address"
                                     type="text"
                                     required
-                                    className="input-primary"
+                                    aria-required="true"
+                                    aria-invalid={!!errors.address}
+                                    aria-describedby={errors.address ? "address-error" : undefined}
+                                    className={`input-primary ${errors.address ? 'border-red-500' : ''}`}
                                     value={formData.address}
-                                    onChange={(e) => setFormData({...formData, address: e.target.value})}
+                                    onChange={(e) => {
+                                        setFormData({...formData, address: e.target.value})
+                                        if (errors.address) setErrors({...errors, address: ''})
+                                    }}
                                     data-test-id="address-input"
                                 />
+                                {errors.address && (
+                                    <p id="address-error" className="mt-1 text-sm text-red-500" role="alert" data-test-id="address-error">
+                                        {errors.address}
+                                    </p>
+                                )}
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-white" data-test-id="zip-label">ZIP
-                                    Code</label>
+                                <label htmlFor="zip" className="block text-sm font-medium text-white" data-test-id="zip-label">ZIP Code</label>
                                 <input
+                                    id="zip"
                                     type="text"
                                     required
-                                    className="input-primary"
+                                    aria-required="true"
+                                    aria-invalid={!!errors.zip}
+                                    aria-describedby={errors.zip ? "zip-error" : undefined}
+                                    className={`input-primary ${errors.zip ? 'border-red-500' : ''}`}
                                     value={formData.zip}
-                                    onChange={(e) => setFormData({
-                                        ...formData,
-                                        zip: e.target.value.replace(/\D/g, '').slice(0, 5)
-                                    })}
+                                    onChange={(e) => {
+                                        setFormData({...formData, zip: e.target.value.replace(/\D/g, '').slice(0, 5)})
+                                        if (errors.zip) setErrors({...errors, zip: ''})
+                                    }}
                                     data-test-id="zip-input"
                                 />
+                                {errors.zip && (
+                                    <p id="zip-error" className="mt-1 text-sm text-red-500" role="alert" data-test-id="zip-error">
+                                        {errors.zip}
+                                    </p>
+                                )}
                             </div>
                         </div>
                         <div className="grid grid-cols-2 gap-4">
                             <div>
-                                <label className="block text-sm font-medium text-white"
-                                       data-test-id="city-label">City</label>
+                                <label htmlFor="city" className="block text-sm font-medium text-white" data-test-id="city-label">City</label>
                                 <input
+                                    id="city"
                                     type="text"
                                     required
-                                    className="input-primary"
+                                    aria-required="true"
+                                    aria-invalid={!!errors.city}
+                                    aria-describedby={errors.city ? "city-error" : undefined}
+                                    className={`input-primary ${errors.city ? 'border-red-500' : ''}`}
                                     value={formData.city}
-                                    onChange={(e) => setFormData({...formData, city: e.target.value})}
+                                    onChange={(e) => {
+                                        setFormData({...formData, city: e.target.value})
+                                        if (errors.city) setErrors({...errors, city: ''})
+                                    }}
                                     data-test-id="city-input"
                                 />
+                                {errors.city && (
+                                    <p id="city-error" className="mt-1 text-sm text-red-500" role="alert" data-test-id="city-error">
+                                        {errors.city}
+                                    </p>
+                                )}
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-white"
-                                       data-test-id="state-label">State</label>
+                                <label htmlFor="phone" className="block text-sm font-medium text-white" data-test-id="phone-label">Phone</label>
                                 <input
-                                    type="text"
+                                    id="phone"
+                                    type="tel"
                                     required
-                                    className="input-primary"
-                                    value={formData.state}
-                                    onChange={(e) => setFormData({...formData, state: e.target.value})}
-                                    data-test-id="state-input"
+                                    aria-required="true"
+                                    aria-invalid={!!errors.phone}
+                                    aria-describedby={errors.phone ? "phone-error" : undefined}
+                                    className={`input-primary ${errors.phone ? 'border-red-500' : ''}`}
+                                    value={formData.phone}
+                                    onChange={(e) => {
+                                        setFormData({...formData, phone: e.target.value})
+                                        if (errors.phone) setErrors({...errors, phone: ''})
+                                    }}
+                                    data-test-id="phone-input"
                                 />
+                                {errors.phone && (
+                                    <p id="phone-error" className="mt-1 text-sm text-red-500" role="alert" data-test-id="phone-error">
+                                        {errors.phone}
+                                    </p>
+                                )}
                             </div>
                         </div>
-                        <button type="submit" className="btn-primary w-full" data-test-id="place-order-button">
-                            Place Order
-                        </button>
+                        <div className="flex space-x-4">
+                            <button 
+                                type="button"
+                                onClick={() => setShowCancelConfirmation(true)}
+                                className="btn-secondary w-full" 
+                                data-test-id="cancel-checkout-button"
+                            >
+                                Cancel Order
+                            </button>
+                            <button 
+                                type="submit" 
+                                className="btn-primary w-full" 
+                                data-test-id="place-order-button"
+                            >
+                                Place Order
+                            </button>
+                        </div>
                     </form>
                 </div>
 
@@ -239,9 +352,14 @@ export default function CheckoutPage() {
             </div>
 
             {showConfirmation && (
-                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50"
-                     data-test-id="order-confirmation-modal">
-                    <div className="bg-white rounded-[20px] max-w-2xl w-full p-8">
+                <div 
+                    className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50" 
+                    data-test-id="order-confirmation-modal"
+                    role="dialog"
+                    aria-modal="true"
+                    aria-labelledby="confirmation-title"
+                >
+                    <div className="bg-white rounded-[20px] max-w-2xl w-full p-8" data-test-id="order-confirmation-content">
                         <h2 className="text-[32px] font-bold text-gray-900 mb-8" data-test-id="confirmation-title">
                             Confirm Your Order
                         </h2>
@@ -258,7 +376,7 @@ export default function CheckoutPage() {
                                     <p className="text-[16px]" data-test-id="shipping-phone">{formData.phone}</p>
                                     <p className="text-[16px]" data-test-id="shipping-address">{formData.address}</p>
                                     <p className="text-[16px]" data-test-id="shipping-city-state">
-                                        {formData.city}, {formData.state} {formData.zip}
+                                        {formData.city} {formData.zip}
                                     </p>
                                 </div>
                             </div>
@@ -291,16 +409,58 @@ export default function CheckoutPage() {
                             <button
                                 onClick={() => setShowConfirmation(false)}
                                 className="px-6 py-3 text-[16px] text-gray-600 hover:text-gray-900 font-medium"
-                                data-test-id="cancel-order-button"
+                                data-test-id="modal-cancel-button"
                             >
                                 Cancel
                             </button>
                             <button
                                 onClick={handleConfirmOrder}
                                 className="px-6 py-3 text-[16px] bg-[#6366F1] text-white font-medium rounded-lg hover:bg-[#5558E6]"
-                                data-test-id="confirm-order-button"
+                                data-test-id="modal-confirm-button"
                             >
                                 Confirm Order
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Cancel Confirmation Modal */}
+            {showCancelConfirmation && (
+                <div 
+                    className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50" 
+                    data-test-id="cancel-confirmation-modal"
+                    role="dialog"
+                    aria-modal="true"
+                    aria-labelledby="cancel-confirmation-title"
+                >
+                    <div className="bg-white rounded-lg max-w-md w-full p-6" data-test-id="cancel-confirmation-content">
+                        <h2 
+                            className="text-2xl font-bold text-gray-900 mb-4" 
+                            data-test-id="cancel-confirmation-title"
+                        >
+                            Cancel Order?
+                        </h2>
+                        <p 
+                            className="text-gray-600 mb-6" 
+                            data-test-id="cancel-confirmation-message"
+                        >
+                            Are you sure you want to cancel your order?
+                        </p>
+                        <div className="flex justify-end space-x-4">
+                            <button
+                                onClick={() => setShowCancelConfirmation(false)}
+                                className="px-4 py-2 text-gray-700 hover:text-gray-900"
+                                data-test-id="modal-keep-shopping-button"
+                            >
+                                Keep Shopping
+                            </button>
+                            <button
+                                onClick={handleCancelOrder}
+                                className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
+                                data-test-id="modal-confirm-cancel-button"
+                            >
+                                Cancel Order
                             </button>
                         </div>
                     </div>

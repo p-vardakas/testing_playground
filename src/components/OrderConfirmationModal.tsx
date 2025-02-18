@@ -27,17 +27,21 @@ export default function OrderConfirmationModal({
              data-test-id="order-confirmation-modal">
             <div className="bg-white rounded-lg max-w-2xl w-full">
                 <div className="p-6">
-                    <h2 className="text-2xl font-bold text-gray-900 mb-4" data-test-id="confirmation-title">Confirm Your
-                        Order</h2>
+                    <h2 className="text-2xl font-bold text-gray-900 mb-4" data-test-id="confirmation-title">
+                        Confirm Your Order
+                    </h2>
 
                     <div className="space-y-4">
                         <div className="border-b pb-4">
-                            <h3 className="font-semibold text-gray-900 mb-2"
-                                data-test-id="shipping-details-title">Shipping Details</h3>
+                            <h3 className="font-semibold text-gray-900 mb-2" data-test-id="shipping-details-title">
+                                Shipping Details
+                            </h3>
                             <p data-test-id="shipping-name">{orderDetails.name}</p>
                             <p data-test-id="shipping-phone">{orderDetails.phone}</p>
                             <p data-test-id="shipping-address">{orderDetails.address}</p>
-                            <p data-test-id="shipping-city-state">{orderDetails.city}, {orderDetails.state} {orderDetails.zip}</p>
+                            <p data-test-id="shipping-city-state">
+                                {orderDetails.city} {orderDetails.zip}
+                            </p>
                         </div>
 
                         <div className="border-b pb-4">

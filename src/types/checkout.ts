@@ -3,6 +3,5 @@ export interface CheckoutForm {
   phone: string
   address: string
   city: string
-  state: string
   zip: string
 } 

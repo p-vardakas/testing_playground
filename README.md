@@ -36,8 +36,6 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
 ## Deploy on Vercel
 
-This repo auto deploy on Vercel when new changes apply to main branch
+The repository is configured for automatic deployment on Vercel. Any changes merged into the main branch will trigger a new deployment.
